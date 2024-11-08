@@ -29,9 +29,9 @@ public class BlockStateBaseMixin {
             level.scheduleTick(pos, fluid, fluid.getTickDelay(level));
     }
 
-    @Inject(method = "use", at = @At("RETURN"))
-    private void injectFluidTickingOnUse(Level level, Player player, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
-        BlockPos pos = blockHitResult.getBlockPos();
+    @Inject(method = "useWithoutItem", at = @At("RETURN"))
+    private void injectFluidTickingOnUse(Level level, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
+        BlockPos pos = hitResult.getBlockPos();
         Fluid fluid = level.getFluidState(pos).getType();
         if (fluid != Fluids.EMPTY)
             level.scheduleTick(pos, fluid, fluid.getTickDelay(level));

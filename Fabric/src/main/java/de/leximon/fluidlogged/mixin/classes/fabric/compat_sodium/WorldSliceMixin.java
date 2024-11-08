@@ -1,10 +1,11 @@
 package de.leximon.fluidlogged.mixin.classes.fabric.compat_sodium;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.leximon.fluidlogged.mixin.extensions.compat_sodium.ClonedChunkSectionExtension;
 import de.leximon.fluidlogged.mixin.extensions.compat_sodium.WorldSliceExtension;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
-import me.jellysquid.mods.sodium.client.world.cloned.ChunkRenderContext;
-import me.jellysquid.mods.sodium.client.world.cloned.ClonedChunkSection;
+import net.caffeinemc.mods.sodium.client.world.cloned.ChunkRenderContext;
+import net.caffeinemc.mods.sodium.client.world.cloned.ClonedChunkSection;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,18 +15,17 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 
-@Mixin(targets = "me/jellysquid/mods/sodium/client/world/WorldSlice")
+@Mixin(targets = "net/caffeinemc/mods/sodium/client/world/LevelSlice")
 public abstract class WorldSliceMixin implements WorldSliceExtension {
 
     @Shadow @Final private static int SECTION_ARRAY_SIZE;
 
-    @Shadow private int originX;
-    @Shadow private int originY;
-    @Shadow private int originZ;
+    @Shadow private int originBlockX;
+    @Shadow private int originBlockY;
+    @Shadow private int originBlockZ;
 
     @Shadow public static int getLocalSectionIndex(int x, int y, int z) { return 0; }
 
@@ -42,20 +42,19 @@ public abstract class WorldSliceMixin implements WorldSliceExtension {
         this.fluidlogged$fluidArrays = new Int2ReferenceMap[SECTION_ARRAY_SIZE];
     }
 
-    @Inject(method = "copySectionData", at = @At("TAIL"), locals = LocalCapture.CAPTURE_FAILHARD, remap = false)
-    private void injectUnpackFluidData(ChunkRenderContext context, int sectionIndex, CallbackInfo ci, ClonedChunkSection section) {
+    @Inject(method = "copySectionData", at = @At("TAIL"), remap = false)
+    private void injectUnpackFluidData(ChunkRenderContext context, int sectionIndex, CallbackInfo ci, @Local ClonedChunkSection section) {
         ClonedChunkSectionExtension sectionExt = ((ClonedChunkSectionExtension) section);
 
         this.fluidlogged$fluidArrays[sectionIndex] = sectionExt.getFluidlogged$fluidData();
     }
 
     @Inject(
-            method = "reset",
-            at = @At(value = "FIELD", target = "Lme/jellysquid/mods/sodium/client/world/WorldSlice;blockEntityArrays:[Lit/unimi/dsi/fastutil/ints/Int2ReferenceMap;"),
-            locals = LocalCapture.CAPTURE_FAILHARD,
-            remap = false
+      method = "reset",
+      at = @At(value = "FIELD", target = "Lnet/caffeinemc/mods/sodium/client/world/LevelSlice;blockEntityArrays:[Lit/unimi/dsi/fastutil/ints/Int2ReferenceMap;"),
+      remap = false
     )
-    private void injectReset(CallbackInfo ci, int sectionIndex) {
+    private void injectReset(CallbackInfo ci, @Local int sectionIndex) {
         this.fluidlogged$fluidArrays[sectionIndex] = null;
     }
 
@@ -72,9 +71,9 @@ public abstract class WorldSliceMixin implements WorldSliceExtension {
         if (!fluidState.isEmpty())
             return fluidState;
 
-        int relX = x - this.originX;
-        int relY = y - this.originY;
-        int relZ = z - this.originZ;
+        int relX = x - this.originBlockX;
+        int relY = y - this.originBlockY;
+        int relZ = z - this.originBlockZ;
 
         Int2ReferenceMap<FluidState> fluids = this.fluidlogged$fluidArrays[getLocalSectionIndex(relX >> 4, relY >> 4, relZ >> 4)];
         if (fluids == null)

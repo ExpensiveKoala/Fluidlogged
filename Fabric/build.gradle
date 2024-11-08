@@ -1,128 +1,95 @@
-import com.modrinth.minotaur.dependencies.ModDependency
 import groovy.json.JsonSlurper
 
 plugins {
-	id 'io.github.juuxel.loom-quiltflower' version '1.7.+'
-	id 'fabric-loom' version '0.12-SNAPSHOT'
-	id 'maven-publish'
-	id 'com.modrinth.minotaur' version '2.+'
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'multiloader-loader'
+    id 'fabric-loom'
+    id 'net.darkhax.curseforgegradle'
+    id 'com.modrinth.minotaur'
 }
-
-archivesBaseName = mod_id
-version = "${mod_version}-fabric-${mod_version_suffix}"
-
 dependencies {
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-	modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    
+    modImplementation "com.terraformersmc:modmenu:${modmenu_version}"
+	modCompileOnly "dev.isxander:yet-another-config-lib:${yacl_version}-fabric"
+    
+    // For compatibility
+	modImplementation "maven.modrinth:sodium:${sodium_version}-fabric"
+	modImplementation "maven.modrinth:lithium:${lithium_version}"
 
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-	modCompileOnly "dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}"
-
-	// for compatibility
-	modImplementation "maven.modrinth:sodium:${project.sodium_version}"
-	modImplementation "maven.modrinth:lithium:${project.lithium_version}"
-	modImplementation "io.github.tropheusj:Milk-Plus:${project.milk_plus_version}"
-
-	compileOnly "org.projectlombok:lombok:${project.lombok_version}"
-	annotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
-	implementation project(path: ':Common', configuration: 'namedElements')
+    compileOnly "org.checkerframework:checker-qual:3.12.0"
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: "${lombok_version}"
 }
 
 loom {
-	accessWidenerPath = file("src/main/resources/fluidlogged.accesswidener")
-
-
-	shareCaches()
-	runs {
-		client {
-			client()
-			setConfigName("Fabric Client")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-		server {
-			server()
-			setConfigName("Fabric Server")
-			ideConfigGenerated(true)
-			runDir("run")
-		}
-	}
-}
-
-processResources {
-	from project(':Common').sourceSets.main.resources
-	inputs.property "version", mod_version
-
-	filesMatching("fabric.mod.json") {
-		expand "version": mod_version
-	}
-
-	filesMatching("${mod_id}.fabric.mixins.json") {
-		expand "refmap_target": "${archivesBaseName}-"
-	}
-}
-
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-}
-
-tasks.withType(JavaCompile) {
-	source(project(':Common').sourceSets.main.allSource)
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+    runs {
+        client {
+            client()
+            setConfigName('Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
+        }
+    }
 }
 
 // publishing to mod sites
 modrinth {
-	def slurper = new JsonSlurper()
+    def slurper = new JsonSlurper()
 
 	token = System.getenv("MODRINTH_TOKEN")
-	projectId = "BnXpPaut"
-	versionNumber = mod_version
-	versionName = "Fluidlogged ${mod_version} Fabric"
-	versionType = mod_version_type
+	projectId = "${modrinth_project_id}"
+	versionNumber = "${version}"
+	versionName = "Fluidlogged ${version} Fabric"
+	versionType = "${mod_version_type}"
 	changelog = file("CHANGELOG.md").getText("UTF-8")
 	uploadFile = remapJar
-	gameVersions = slurper.parseText(mod_game_versions)
+	gameVersions = slurper.parseText("${mod_game_versions}")
 	loaders = ["fabric"]
-	dependencies = [
-			new ModDependency("P7dR8mSH", "required"), // Fabric API
-			new ModDependency("1eAoo2KR", "required") // Yet Another Config Lib
-	]
-}
-
-curseforge {
-	def slurper = new JsonSlurper()
-	def gameVersions = slurper.parseText(mod_game_versions)
-
-	apiKey = System.getenv("CURSEFORGE_TOKEN") ?: ""
-	project {
-		id = "620894"
-		releaseType = mod_version_type
-		changelogType = "markdown"
-		changelog = file("CHANGELOG.md")
-
-		gameVersions.each { addGameVersion it }
-		addGameVersion "Java 17"
-		addGameVersion "Fabric"
-		relations {
-			requiredDependency "fabric-api" // Fabric API
-			requiredDependency "yacl" // Yet Another Config Lib
-		}
-
-		mainArtifact(remapJar) {
-			displayName = "[${gameVersions[0]}] Fluidlogged ${mod_version} Fabric"
-		}
-	}
-	options {
-		forgeGradleIntegration = false
+    debugMode = "${debug_publish}".toBoolean()
+	dependencies {
+        // scope.type
+        // The scope can be `required`, `optional`, `incompatible`, or `embedded`
+        // The type can be either `project` or `version` (eg. optional.version "sodium", "mc1.19.3-0.4.8")
+		required.project "P7dR8mSH" // Fabric API
+		required.project "1eAoo2KR" // Yet Another Config Lib
 	}
 }
 
-afterEvaluate {
-	tasks.curseforge620894.dependsOn remapJar
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn(tasks.remapJar)
+    
+    def slurper = new JsonSlurper()
+    apiToken = System.getenv("CURSEFORGE_TOKEN") ?: ""
+    debugMode = "${debug_publish}".toBoolean()
+    
+    def mainFile = upload(curseforge_project_id, tasks.remapJar.archiveFile)
+    mainFile.changelogType = 'markdown'
+    mainFile.changelog = file("CHANGELOG.md").getText("UTF-8")
+    mainFile.releaseType = "${mod_version_type}"
+    mainFile.addRequirement('fabric-api')
+    mainFile.addRequirement('yacl')
+    mainFile.addOptional('modmenu')
+    mainFile.displayName = "Fluidlogged ${version} Fabric"
+    slurper.parseText("${mod_game_versions}").each { version ->
+        mainFile.addGameVersion(version)
+    }
 }

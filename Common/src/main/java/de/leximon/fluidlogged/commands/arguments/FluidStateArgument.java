@@ -21,7 +21,7 @@ public class FluidStateArgument implements ArgumentType<FluidInput> {
     private final HolderLookup<Fluid> fluids;
 
     public FluidStateArgument(CommandBuildContext commandBuildContext) {
-        this.fluids = commandBuildContext.holderLookup(Registries.FLUID);
+        this.fluids = commandBuildContext.lookup(Registries.FLUID).get();
     }
 
     public static FluidStateArgument fluid(CommandBuildContext commandBuildContext) {

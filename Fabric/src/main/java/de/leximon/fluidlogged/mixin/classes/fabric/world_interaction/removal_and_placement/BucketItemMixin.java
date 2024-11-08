@@ -29,10 +29,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -63,7 +60,7 @@ public abstract class BucketItemMixin extends Item {
 
     @Inject(
             method = "use",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;", ordinal = 2),
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;", ordinal = 1),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
     private void injectCaptureLocals(
@@ -126,15 +123,15 @@ public abstract class BucketItemMixin extends Item {
         cir.setReturnValue(InteractionResultHolder.sidedSuccess(newFilledBucket, level.isClientSide()));
     }
 
-    @SuppressWarnings({"MixinAnnotationTarget", "InvalidInjectorMethodSignature"})
-    @ModifyConstant(
-            method = "emptyContents",
-            constant = @Constant(ordinal = 2, classValue = LiquidBlockContainer.class)
-    )
-    private boolean redirectBypassLiquidBlockContainerCheck2(Object reference, Class<LiquidBlockContainer> clazz) {
-        return true;
-    }
-
+//    @SuppressWarnings({"MixinAnnotationTarget", "InvalidInjectorMethodSignature"})
+//    @ModifyConstant(
+//            method = "emptyContents",
+//            constant = @Constant(ordinal = 2, classValue = LiquidBlockContainer.class)
+//    )
+//    private boolean redirectBypassLiquidBlockContainerCheck2(Object reference, Class<LiquidBlockContainer> clazz) {
+//        return true;
+//    }
+    
     @ModifyVariable(
             method = "emptyContents",
             at = @At(value = "STORE"),
@@ -147,37 +144,38 @@ public abstract class BucketItemMixin extends Item {
         return blockState.isAir() || replace || Fluidlogged.canPlaceFluid(level, blockPos, blockState, this.content);
     }
 
-
-    @Redirect(
-            method = "emptyContents",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lnet/minecraft/world/item/BucketItem;content:Lnet/minecraft/world/level/material/Fluid;",
-                    ordinal = 4,
-                    opcode = Opcodes.GETFIELD
-            )
-    )
-    private Fluid redirectBypassContentCheck2(BucketItem instance, @Nullable Player player, Level level, BlockPos blockPos, @Nullable BlockHitResult blockHitResult) {
-        BlockState blockState = level.getBlockState(blockPos);
-
-        // place the fluid normally if the block is not waterloggable/fluidloggable
-        return Fluidlogged.canPlaceFluid(level, blockPos, blockState, this.content) ? Fluids.WATER : null;
-    }
+//    @Redirect(
+//            method = "emptyContents",
+//            at = @At(
+//                    value = "FIELD",
+//                    target = "Lnet/minecraft/world/item/BucketItem;content:Lnet/minecraft/world/level/material/Fluid;",
+//                    ordinal = 4,
+//                    opcode = Opcodes.GETFIELD
+//            )
+//    )
+//    private Fluid redirectBypassContentCheck2(BucketItem instance, @Nullable Player player, Level level, BlockPos blockPos, @Nullable BlockHitResult blockHitResult) {
+//        BlockState blockState = level.getBlockState(blockPos);
+//
+//        // place the fluid normally if the block is not waterloggable/fluidloggable
+//        return Fluidlogged.canPlaceFluid(level, blockPos, blockState, this.content) ? Fluids.WATER : null;
+//    }
 
 
     @Inject(
-            method = "emptyContents",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lnet/minecraft/world/level/material/Fluids;WATER:Lnet/minecraft/world/level/material/FlowingFluid;",
-                    ordinal = 0,
-                    shift = At.Shift.BY,
-                    by = 2
-            ),
-            cancellable = true
+      method = "emptyContents",
+      at = @At(
+        value = "JUMP",
+        opcode = Opcodes.IFEQ,
+        ordinal = 6
+      ),
+      cancellable = true
     )
     private void injectPlaceFluid(Player player, Level level, BlockPos blockPos, BlockHitResult blockHitResult, CallbackInfoReturnable<Boolean> cir) {
+        Fluid content = this.content;
         BlockState blockState = level.getBlockState(blockPos);
+        if (!Fluidlogged.canPlaceFluid(level, blockPos, blockState, content))
+            return;
+        
         FluidState contentFluidState = ((FlowingFluid) this.content).getSource(false);
 
         // try to place the fluid via blockState first then via Fluidlogged

@@ -9,15 +9,15 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(targets = "net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask")
+@Mixin(targets = "net/minecraft/client/renderer/chunk/SectionCompiler")
 public class RebuildTaskMixin {
 
     @Unique private BlockPos fluidloggedBlockPos;
     @Unique private RenderChunkRegion fluidloggedRenderChunkRegion;
 
     @Redirect(
-            method = "compile",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;", ordinal = 1)
+            method = "compile*",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/chunk/RenderChunkRegion;getBlockState(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;", ordinal = 0)
     )
     private BlockState redirectGetBlockStateAndCapture(RenderChunkRegion instance, BlockPos blockPos) {
         this.fluidloggedRenderChunkRegion = instance;
@@ -26,7 +26,7 @@ public class RebuildTaskMixin {
     }
 
     @Redirect(
-            method = "compile",
+            method = "compile*",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;")
     )
     private FluidState redirectGetFluidState(BlockState instance) {

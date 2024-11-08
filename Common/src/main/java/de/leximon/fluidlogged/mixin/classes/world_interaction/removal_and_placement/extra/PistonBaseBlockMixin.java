@@ -27,7 +27,7 @@ public class PistonBaseBlockMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/util/List;size()I",
-                    ordinal = 3
+                    ordinal = 2
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )

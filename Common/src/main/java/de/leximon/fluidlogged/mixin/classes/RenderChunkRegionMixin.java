@@ -12,22 +12,19 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(RenderChunkRegion.class)
-public class RenderChunkRegionMixin {
-
-    @Shadow @Final protected RenderChunk[][] chunks;
-    @Shadow @Final private int centerX;
-    @Shadow @Final private int centerZ;
-
-
+public abstract class RenderChunkRegionMixin {
+    
+    @Shadow protected abstract RenderChunk getChunk(int x, int z);
+    
     /**
      * @author Leximon (Fluidlogged)
      * @reason get chunk specific fluid state
      */
     @Overwrite
     public FluidState getFluidState(BlockPos blockPos) {
-        int i = SectionPos.blockToSectionCoord(blockPos.getX()) - this.centerX;
-        int j = SectionPos.blockToSectionCoord(blockPos.getZ()) - this.centerZ;
-        return ((RenderChunkExtension) this.chunks[i][j]).getFluidState(blockPos);
+        int x = SectionPos.blockToSectionCoord(blockPos.getX());
+        int z = SectionPos.blockToSectionCoord(blockPos.getZ());
+        return ((RenderChunkExtension) getChunk(x, z)).getFluidState(blockPos);
     }
 
 }

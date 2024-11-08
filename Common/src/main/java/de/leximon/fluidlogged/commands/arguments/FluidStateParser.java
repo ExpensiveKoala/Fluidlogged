@@ -21,6 +21,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +42,7 @@ public class FluidStateParser {
     private final StringReader reader;
     private final Map<Property<?>, Comparable<?>> properties = Maps.newHashMap();
     private final Map<String, String> vagueProperties = Maps.newHashMap();
-    private ResourceLocation id = new ResourceLocation("");
+    private ResourceLocation id = ResourceLocation.parse("");
     @Nullable private StateDefinition<Fluid, FluidState> definition;
     @Nullable
     private FluidState state;
@@ -389,7 +390,7 @@ public class FluidStateParser {
             stringBuilder.append('[');
             boolean bl = false;
 
-            for (UnmodifiableIterator<Map.Entry<Property<?>, Comparable<?>>> var3 = blockState.getValues().entrySet().iterator(); var3.hasNext(); bl = true) {
+            for (Iterator<Map.Entry<Property<?>, Comparable<?>>> var3 = blockState.getValues().entrySet().iterator(); var3.hasNext(); bl = true) {
                 Map.Entry<Property<?>, Comparable<?>> entry = var3.next();
                 if (bl) {
                     stringBuilder.append(',');

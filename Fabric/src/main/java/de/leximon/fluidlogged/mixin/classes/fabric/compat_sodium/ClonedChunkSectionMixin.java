@@ -5,7 +5,7 @@ import de.leximon.fluidlogged.mixin.extensions.compat_sodium.ClonedChunkSectionE
 import it.unimi.dsi.fastutil.ints.Int2ReferenceMap;
 import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
-import me.jellysquid.mods.sodium.client.world.WorldSlice;
+import net.caffeinemc.mods.sodium.client.world.LevelSlice;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(targets = "me/jellysquid/mods/sodium/client/world/cloned/ClonedChunkSection")
+@Mixin(targets = "net/caffeinemc/mods/sodium/client/world/cloned/ClonedChunkSection")
 public class ClonedChunkSectionMixin implements ClonedChunkSectionExtension {
 
     @Unique @Nullable
@@ -41,7 +41,7 @@ public class ClonedChunkSectionMixin implements ClonedChunkSectionExtension {
                 fluidData.defaultReturnValue(Fluids.EMPTY.defaultFluidState());
             }
 
-            fluidData.put(WorldSlice.getLocalBlockIndex(pos >> 8 & 15, pos >> 4 & 15, pos & 15), fluidState);
+            fluidData.put(LevelSlice.getLocalBlockIndex(pos >> 8 & 15, pos >> 4 & 15, pos & 15), fluidState);
         }
 
         this.fluidlogged$fluidData = fluidData;

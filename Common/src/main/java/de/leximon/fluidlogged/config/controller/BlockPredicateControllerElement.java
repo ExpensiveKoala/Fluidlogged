@@ -73,7 +73,7 @@ public class BlockPredicateControllerElement extends StringControllerElement {
 
         Block block = blockOpt.get();
         this.previewState = PreviewState.VALID_BLOCK;
-        this.blockPreview = block.getCloneItemStack(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, block.defaultBlockState());
+        this.blockPreview = block.asItem().getDefaultInstance();
     }
 
     @Override

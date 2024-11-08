@@ -110,7 +110,7 @@ public class Config {
             if (obj.has("addons")) {
                 JsonObject addonsObj = obj.getAsJsonObject("addons");
                 for (String id : addonsObj.keySet()) {
-                    ResourceLocation addonId = new ResourceLocation(id);
+                    ResourceLocation addonId = ResourceLocation.parse(id);
                     boolean enabled = addonsObj.get(id).getAsBoolean();
                     this.addons.put(addonId, enabled);
                 }

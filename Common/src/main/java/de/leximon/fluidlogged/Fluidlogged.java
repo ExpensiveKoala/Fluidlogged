@@ -30,7 +30,7 @@ public class Fluidlogged {
     public static final Config CONFIG = new Config();
 
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static int getFluidId(@Nullable FluidState fluidState) {
@@ -44,7 +44,7 @@ public class Fluidlogged {
 
     public static boolean canPlaceFluid(BlockGetter blockGetter, BlockPos blockPos, BlockState blockState, Fluid fluid) {
         if (blockState.getBlock() instanceof LiquidBlockContainer container
-                && container.canPlaceLiquid(blockGetter, blockPos, blockState, fluid))
+                && container.canPlaceLiquid(null, blockGetter, blockPos, blockState, fluid))
             return true;
         return CONFIG.isFluidloggable(blockState);
     }

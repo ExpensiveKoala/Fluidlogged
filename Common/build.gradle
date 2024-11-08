@@ -1,47 +1,53 @@
 plugins {
-    id 'org.quiltmc.loom' version '1.2.3'
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
 }
 
-archivesBaseName = "${project.mod_name}-common-${project.minecraft_version}"
+neoForge {
+    neoFormVersion = neo_form_version
+    // Automatically enable AccessTransformers if the file exists
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
+}
 
 dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-
-    modCompileOnly "org.ow2.asm:asm:${project.asm_version}"
-    modCompileOnly "org.ow2.asm:asm-tree:${project.asm_version}"
-    modCompileOnly "org.ow2.asm:asm-util:${project.asm_version}"
-    modCompileOnly "org.checkerframework:checker-qual:3.12.0"
-
-    modCompileOnly("dev.isxander.yacl:yet-another-config-lib-fabric:${project.yacl_version}") {
-        exclude(group: "com.terraformersmc")
+    // YACL provides no common artifact. Use neoforge artifact as common one to build against
+    compileOnly("dev.isxander:yet-another-config-lib:${yacl_version}-neoforge") {
+        exclude group: 'com.terraformersmc'
     }
-
-
-    modCompileOnly "maven.modrinth:rubidium:${project.rubidium_version}" // compatibility for sodium and rubidium
-
-    compileOnly "org.spongepowered:mixin:0.8.5"
-    compileOnly "org.projectlombok:lombok:${project.lombok_version}"
-    annotationProcessor "org.projectlombok:lombok:${project.lombok_version}"
+    compileOnly "org.ow2.asm:asm:${asm_version}"
+    compileOnly "org.ow2.asm:asm-tree:${asm_version}"
+    compileOnly "org.ow2.asm:asm-util:${asm_version}"
+    compileOnly "org.checkerframework:checker-qual:3.12.0"
+    
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    // fabric and neoforge both bundle mixinextras, so it is safe to use it in common
+    compileOnly group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
+    annotationProcessor group: 'io.github.llamalad7', name: 'mixinextras-common', version: '0.3.5'
+    
+    compileOnly "org.projectlombok:lombok:${lombok_version}"
+    annotationProcessor "org.projectlombok:lombok:${lombok_version}"
 }
 
-loom {
-    accessWidenerPath = file("../Fabric/src/main/resources/fluidlogged.accesswidener")
-
-    runConfigs.configureEach {
-        ideConfigGenerated = false
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
     }
-}
-
-import net.fabricmc.loom.task.AbstractRemapJarTask
-tasks.withType(AbstractRemapJarTask).each {
-    it.targetNamespace = "named"
-}
-
-processResources {
-    def buildProps = project.properties.clone()
-
-    filesMatching(['pack.mcmeta']) {
-        expand buildProps
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
     }
 }
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+

@@ -2,7 +2,7 @@ package de.leximon.fluidlogged.mixin.classes.world_interaction.removal_and_place
 
 import de.leximon.fluidlogged.mixin.extensions.LevelExtension;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(targets = "net/minecraft/core/dispenser/DispenseItemBehavior$17", priority = 950)
+@Mixin(targets = "net/minecraft/core/dispenser/DispenseItemBehavior$7", priority = 950)
 public abstract class DispenseItemBehaviorMixin extends DefaultDispenseItemBehavior {
 
     @Unique // forge doesn't like this as shadow for what ever reason
@@ -29,13 +29,13 @@ public abstract class DispenseItemBehaviorMixin extends DefaultDispenseItemBehav
             method = "execute",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/core/dispenser/DefaultDispenseItemBehavior;execute(Lnet/minecraft/core/BlockSource;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;"
+                    target = "Lnet/minecraft/core/dispenser/DefaultDispenseItemBehavior;execute(Lnet/minecraft/core/dispenser/BlockSource;Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/ItemStack;"
             ),
             cancellable = true
     )
     private void injectRemovalOfFluidloggedBlocks(BlockSource blockSource, ItemStack itemStack, CallbackInfoReturnable<ItemStack> cir) {
-        LevelAccessor level = blockSource.getLevel();
-        BlockPos pos = blockSource.getPos().relative(blockSource.getBlockState().getValue(DispenserBlock.FACING));
+        LevelAccessor level = blockSource.level();
+        BlockPos pos = blockSource.pos().relative(blockSource.state().getValue(DispenserBlock.FACING));
         FluidState fluidState = level.getFluidState(pos);
 
         if (fluidState.isEmpty() || !fluidState.isSource())
@@ -56,7 +56,7 @@ public abstract class DispenseItemBehaviorMixin extends DefaultDispenseItemBehav
             return;
         }
 
-        if (blockSource.<DispenserBlockEntity>getEntity().addItem(new ItemStack(returnItem)) < 0)
+        if (!blockSource.<DispenserBlockEntity>blockEntity().insertItem(new ItemStack(returnItem)).isEmpty())
             this.fluidlogged$defaultDispenseItemBehavior.dispense(blockSource, new ItemStack(returnItem));
 
         cir.setReturnValue(itemStack);

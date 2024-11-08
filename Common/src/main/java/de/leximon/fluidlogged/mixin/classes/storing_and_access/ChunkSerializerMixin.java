@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.*;
 import net.minecraft.world.level.chunk.storage.ChunkSerializer;
+import net.minecraft.world.level.chunk.storage.RegionStorageInfo;
 import net.minecraft.world.level.levelgen.BelowZeroRetrogen;
 import net.minecraft.world.level.levelgen.blending.BlendingData;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -35,7 +36,7 @@ public abstract class ChunkSerializerMixin {
 
 
     @Inject(method = "read", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/ai/village/poi/PoiManager;checkConsistencyWithBlocks(Lnet/minecraft/core/SectionPos;Lnet/minecraft/world/level/chunk/LevelChunkSection;)V"), locals = LocalCapture.CAPTURE_FAILHARD)
-    private static void injectRead(ServerLevel serverLevel, PoiManager poiManager, ChunkPos chunkPos, CompoundTag compoundTag, CallbackInfoReturnable<ProtoChunk> cir, ChunkPos chunkPos2, UpgradeData upgradeData, boolean bl, ListTag listTag, int i, LevelChunkSection[] levelChunkSections, boolean bl2, ChunkSource chunkSource, LevelLightEngine levelLightEngine, Registry registry, Codec codec, boolean bl3, int j, CompoundTag compoundTag2, int k, int l, PalettedContainer palettedContainer, PalettedContainerRO palettedContainerRO, LevelChunkSection levelChunkSection, SectionPos sectionPos) {
+    private static void injectRead(ServerLevel serverLevel, PoiManager poiManager, RegionStorageInfo regionStorageInfo, ChunkPos chunkPos, CompoundTag compoundTag, CallbackInfoReturnable<ProtoChunk> cir, ChunkPos chunkPos2, UpgradeData upgradeData, boolean bl, ListTag listTag, int i, LevelChunkSection[] levelChunkSections, boolean bl2, ChunkSource chunkSource, LevelLightEngine levelLightEngine, Registry registry, Codec codec, boolean bl3, int j, CompoundTag compoundTag2, int k, int l, PalettedContainer palettedContainer, PalettedContainerRO palettedContainerRO, LevelChunkSection levelChunkSection, SectionPos sectionPos) {
         Short2ObjectMap<FluidState> container = ((LevelChunkSectionExtension) levelChunkSection).createAndSetFluidStatesMap();
         if (compoundTag2.contains("fluidlogged.fluid_states", Tag.TAG_COMPOUND)) {
             CompoundTag fluidStates = compoundTag2.getCompound("fluidlogged.fluid_states");
@@ -44,7 +45,7 @@ public abstract class ChunkSerializerMixin {
             ListTag paletteTag = fluidStates.getList("palette", Tag.TAG_COMPOUND);
             IdMapper<FluidState> palette = new IdMapper<>(paletteTag.size());
             for (int i1 = 0; i1 < paletteTag.size(); i1++)
-                palette.add(FluidState.CODEC.parse(NbtOps.INSTANCE, paletteTag.getCompound(i1)).getOrThrow(false, LOGGER::error));
+                palette.add(FluidState.CODEC.parse(NbtOps.INSTANCE, paletteTag.getCompound(i1)).getOrThrow());
 
             // read the data
             int[] data = fluidStates.getIntArray("data");
@@ -85,7 +86,7 @@ public abstract class ChunkSerializerMixin {
         // write the palette
         ListTag paletteTag = new ListTag();
         for (FluidState state : palette)
-            paletteTag.add(FluidState.CODEC.encodeStart(NbtOps.INSTANCE, state).getOrThrow(false, LOGGER::error));
+            paletteTag.add(FluidState.CODEC.encodeStart(NbtOps.INSTANCE, state).getOrThrow());
         fluidStates.put("palette", paletteTag);
 
         compoundTag2.put("fluidlogged.fluid_states", fluidStates);
