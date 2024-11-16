@@ -10,18 +10,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(targets = "net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/FluidRenderer")
+@Mixin(targets = "net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer")
 public class FluidRendererMixin {
 
-//    @Redirect(
-//            method = "fluidHeight",
-//            at = @At(
-//                    value = "INVOKE",
-//                    target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;"
-//            )
-//    )
-//    private FluidState redirectFluidHeight(BlockState blockState, BlockAndTintGetter world, Fluid fluid, BlockPos blockPos, Direction direction) {
-//        return world.getFluidState(blockPos);
-//    }
+    @Redirect(
+            method = "fluidHeight",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/state/BlockState;getFluidState()Lnet/minecraft/world/level/material/FluidState;"
+            )
+    )
+    private FluidState redirectFluidHeight(BlockState blockState, BlockAndTintGetter world, Fluid fluid, BlockPos blockPos, Direction direction) {
+        return world.getFluidState(blockPos);
+    }
 
 }
