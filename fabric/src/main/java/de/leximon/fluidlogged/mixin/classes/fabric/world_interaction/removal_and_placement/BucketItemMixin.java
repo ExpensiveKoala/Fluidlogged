@@ -35,7 +35,6 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Debug(export = true)
 @Mixin(BucketItem.class)
 public abstract class BucketItemMixin extends Item {
 
