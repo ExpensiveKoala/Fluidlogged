@@ -1,4 +1,4 @@
-package de.leximon.fluidlogged.mixin.classes.forge.compat_sodium;
+package de.leximon.fluidlogged.mixin.classes.neoforge.compat_sodium;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import de.leximon.fluidlogged.mixin.extensions.compat_sodium.ClonedChunkSectionExtension;
@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 
 @Mixin(targets = "net/caffeinemc/mods/sodium/client/world/LevelSlice")

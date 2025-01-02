@@ -23,7 +23,6 @@
     "world_interaction.BlockStateBaseMixin",
     "world_interaction.FlowingFluidMixin",
     "world_interaction.LevelMixin",
-    "fabric.world_interaction.MultiPlayerGameModeMixin",
     "world_interaction.removal_and_placement.BlockItemMixin",
     "world_interaction.removal_and_placement.SimpleWaterloggedBlockMixin",
     "world_interaction.removal_and_placement.extra.BedBlockMixin",

@@ -1,4 +1,4 @@
-package de.leximon.fluidlogged.mixin.classes.forge.compat_sodium;
+package de.leximon.fluidlogged.mixin.classes.neoforge.compat_sodium;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
