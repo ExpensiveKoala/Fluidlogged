@@ -1,5 +1,6 @@
 package de.leximon.fluidlogged.mixin.classes.fabric.world_interaction.removal_and_placement;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import de.leximon.fluidlogged.Fluidlogged;
 import de.leximon.fluidlogged.mixin.extensions.LevelExtension;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -34,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+@Debug(export = true)
 @Mixin(BucketItem.class)
 public abstract class BucketItemMixin extends Item {
 
@@ -88,16 +90,15 @@ public abstract class BucketItemMixin extends Item {
 
 
     @Inject(
-            method = "use",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;",
-                    ordinal = 0
-            ),
-            locals = LocalCapture.CAPTURE_FAILHARD,
-            cancellable = true
+      method = "use",
+      at = @At(
+        value = "INVOKE",
+        target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;",
+        ordinal = 0
+      ),
+      cancellable = true
     )
-    private void injectRemoveFluid(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, ItemStack itemStack, BlockHitResult blockHitResult, BlockPos blockPos, Direction direction, BlockPos blockPos2, BlockState blockState) {
+    private void injectRemoveFluid(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, @Local ItemStack itemStack, @Local(ordinal = 0) BlockPos blockPos, @Local BlockState blockState) {
         if (blockState instanceof BucketPickup)
             return; // let the code after this injection handle it
 
