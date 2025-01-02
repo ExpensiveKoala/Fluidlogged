@@ -35,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@Debug(export = true)
 @Mixin(BucketItem.class)
 public abstract class BucketItemMixin extends Item {
 
@@ -66,7 +67,7 @@ public abstract class BucketItemMixin extends Item {
       ),
       cancellable = true
     )
-    private void injectRemoveFluidForge(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, @Local ItemStack itemStack, @Local(ordinal = 1) BlockPos blockPos, @Local BlockState blockState) {
+    private void injectRemoveFluidForge(Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir, @Local ItemStack itemStack, @Local(ordinal = 0) BlockPos blockPos, @Local BlockState blockState) {
         if (blockState instanceof BucketPickup)
             return; // let the code after this injection handle it
 
@@ -106,13 +107,12 @@ public abstract class BucketItemMixin extends Item {
     @ModifyVariable(
             method = "emptyContents(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/BlockHitResult;Lnet/minecraft/world/item/ItemStack;)Z",
             at = @At(value = "STORE"),
-            ordinal = 1,
+            ordinal = 2,
             remap = false
     )
     private boolean modifyCanPlaceFluid(boolean bl2, @Nullable Player player, Level level, BlockPos blockPos, @Nullable BlockHitResult blockHitResult) {
-        Fluid content = this.content;
         BlockState blockState = level.getBlockState(blockPos);
-        boolean replace = blockState.canBeReplaced(content);
+        boolean replace = blockState.canBeReplaced(this.content);
 
         return blockState.isAir() || replace || Fluidlogged.canPlaceFluid(level, blockPos, blockState, content);
     }
